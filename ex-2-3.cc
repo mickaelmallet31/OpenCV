@@ -1,6 +1,6 @@
 /**************************************
  ** OPENCV - EXERCICE 2.3 :          **
- **  Transformée de Hough            **
+ **  Transformï¿½e de Hough            **
  **************************************/
 
 #include <opencv2/opencv.hpp>
@@ -12,38 +12,38 @@ using namespace cv;
 int main(void)
 {
   std::cout << "Exercice 2-3...\n";
-  std::cout << "Transformée de Hough\n\n";
+  std::cout << "Transformï¿½e de Hough\n\n";
   std::cout << "Appuyer sur une touche pour terminer..." << std::endl;
 
   Mat m1, m2;
 
   m1 = imread("./data/carte.jpg");
-  imshow("Carte", m1);
+  const char * name_win = "Carte";
+  cv::namedWindow(name_win); cv::moveWindow(name_win, 50, 50); cv::imshow(name_win, m1);
 
 
   std::cout << "Canny..." << std::endl;
-  // (1) A FAIRE : Utiliser l'algorithme de Canny (attention au réglage des seuils...)
-  m2 = m1; // (supprimer cette ligne)
-
-  cv::imshow("Canny", m2);
+  // (1) A FAIRE : Utiliser l'algorithme de Canny (attention au rï¿½glage des seuils...)
+  Canny(m1, m2, 150, 450);
+  name_win = "Canny";
+  cv::namedWindow(name_win); cv::moveWindow(name_win, 500, 50); cv::imshow(name_win, m2);
 
   ////////////////////////////////////////////////////
   std::cout << "Hough..." << std::endl;
   std::vector<Vec2f> lignes;
 
-  // (2) A FAIRE : Faire la transformée de Hough (fonction OpenCV HoughLines)
-
-
-  std::cout << "Détecté " << lignes.size() << " lignes." << std::endl;
+  // (2) A FAIRE : Faire la transformï¿½e de Hough (fonction OpenCV HoughLines)
+  HoughLines(m2, lignes, 1, 4*(2*CV_PI/360), 53);
+  std::cout << "Dï¿½tectï¿½ " << lignes.size() << " lignes." << std::endl;
 
   // Dessin des lignes (superposition sur l'image initiale)
   for(size_t i = 0; i < lignes.size(); i++ )
   {
-    // Récupére les coordonnées polaires de chaque ligne
+    // Rï¿½cupï¿½re les coordonnï¿½es polaires de chaque ligne
     float rho   = lignes[i][0],
           theta = lignes[i][1];
 
-    // Calcul 2 points sur la ligne (à l'extérieur de l'image)
+    // Calcul 2 points sur la ligne (ï¿½ l'extï¿½rieur de l'image)
     cv::Point pt1, pt2;
     float a = cos(theta), b = sin(theta);
     float x0 = a * rho, y0 = b * rho;
@@ -53,14 +53,12 @@ int main(void)
     pt2.y = y0 - 1000 * a;
 
     // (3) A FAIRE : tracer une ligne entre les 2 points pt1 et pt2
-
+    line(m1, pt1, pt2, Scalar(0, 0, 255));
   }
-  cv::imshow("Detection", m1);
+  name_win = "Detection";
+  cv::namedWindow(name_win); cv::moveWindow(name_win, 950, 50); cv::imshow(name_win, m1);
 
   waitKey(0);
   std::cout << "Fin.\n";
   return 0;
 }
-
-
-

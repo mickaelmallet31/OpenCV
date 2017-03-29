@@ -1,7 +1,7 @@
 /**************************************
  ** OPENCV - EXERCICE 3 :            **
  ** Mise en correspondance de points **
- ** d'intérêt                        **
+ ** d'intï¿½rï¿½t                        **
  **************************************/
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d/features2d.hpp>
@@ -10,14 +10,15 @@
 
 using namespace cv;
 
-// Seuil pour le critère de ratio
-#define SEUIL_RATIO 0.65f
+// Seuil pour le critï¿½re de ratio
+#define SEUIL_RATIO 0.63f
 
 int main(void)
 {
   std::cout << "Exercice 3..." << std::endl;
 
   Mat img[2];
+  Mat empty;
   img[0] = imread("data/box.png", CV_LOAD_IMAGE_GRAYSCALE);
   img[1] = imread("data/box-in-scene.png", CV_LOAD_IMAGE_GRAYSCALE);
 
@@ -27,45 +28,54 @@ int main(void)
     return -1;
   }
 
-  // Vecteurs de points d'intérêts (un par image)
+  // Vecteurs de points d'intï¿½rï¿½ts (un par image)
   std::vector<KeyPoint> keypoints[2];
-  // Matrice des traits (pour chaque image, et pour chaque point d'intérêt)
+  // Matrice des traits (pour chaque image, et pour chaque point d'intï¿½rï¿½t)
   Mat traits[2];
 
-  // A FAIRE : instancier un détecteur ORB (ORiented BRIEF),
-  // réglé pour détecter au maximum 500 points d'intérêts
+  // A FAIRE : instancier un dï¿½tecteur ORB (ORiented BRIEF),
+  // rï¿½glï¿½ pour dï¿½tecter au maximum 500 points d'intï¿½rï¿½ts
   // et l'appliquer aux deux images pour calculer :
-  //   - les points d'intérêts ("keypoints" en anglais)
+  //   - les points d'intï¿½rï¿½ts ("keypoints" en anglais)
   //   - les traits ("descriptors" en anglais)
+  auto orb = ORB::create(500);
+  orb->detectAndCompute(img[0], empty, keypoints[0], traits[0]);
+  orb->detectAndCompute(img[1], empty, keypoints[1], traits[1]);
 
-
-  // Paires de points d'intérêt
+  // Paires de points d'intï¿½rï¿½t
   std::vector<std::vector<DMatch> > matches;
 
-  // A FAIRE : Mettre en correspondance les points d'intérêts
-  // (calcul des paires). Utiliser la méthode "brute force",
+  // A FAIRE : Mettre en correspondance les points d'intï¿½rï¿½ts
+  // (calcul des paires). Utiliser la mï¿½thode "brute force",
   // avec la norme de Hamming.
-
+  auto descriptor = DescriptorMatcher::create("BruteForce-Hamming");
+  descriptor->knnMatch(traits[0], traits[1], matches, 2);
 
   // Ici, on a un ensemble de correspondance brutes
   // Il s'agit maintenant de filtrer pour ne retenir
-  // que les paires de points d'intérêts les plus fiables
+  // que les paires de points d'intï¿½rï¿½ts les plus fiables
   std::vector<DMatch> good_matches;
 
-  // Filtre critère ratio
+  // Filtre critï¿½re ratio
   for(auto &match: matches)
   {
-    // A FAIRE : Vérifier qu'il y a au moins 2 voisins
-    // et vérifier le critère de distance :
+    // A FAIRE : Vï¿½rifier qu'il y a au moins 2 voisins
+    // et vï¿½rifier le critï¿½re de distance :
     // d0 < SEUIL_RATIO * d1, avec d0: distance du plus proche,
-    // d1: distance du deuxième plus proche.
-    // Si le critère est vérifié, ajouter le plus
+    // d1: distance du deuxiï¿½me plus proche.
+    // Si le critï¿½re est vï¿½rifiï¿½, ajouter le plus
     // des bonnes paires ("good_matches").
     // (commenter la ligne suivante)
-    good_matches.push_back(match[0]);
+    if (match.size() >= 2)
+    {
+      if (match[0].distance < match[1].distance * SEUIL_RATIO)
+      {
+        good_matches.push_back(match[0]);
+      }
+    }
   }
 
-  // Dessin des paires de points pour vérification
+  // Dessin des paires de points pour vï¿½rification
   Mat img_matches;
   drawMatches(img[0], keypoints[0], img[1], keypoints[1],
               good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
@@ -78,7 +88,3 @@ int main(void)
   std::cout << "Fin.\n";
   return 0;
 }
-
-
-
-

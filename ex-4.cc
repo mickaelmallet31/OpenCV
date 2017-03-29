@@ -15,36 +15,37 @@ int main(void)
   std::cout << "Exercice 4 (flux optique)...\n"
             << "Appuyer sur une touche pour terminer." << std::endl;
 
-  // A FAIRE : changer pour ouvrir la première webcam
-  VideoCapture cam("./data/sequence.mpg");
+  // A FAIRE : changer pour ouvrir la premiï¿½re webcam
+  VideoCapture cam(0);
 
-  // I = trame courante, Iprev = trame précédente
+  // I = trame courante, Iprev = trame prï¿½cï¿½dente
   // flux = flux optique
   Mat I, Iprev, flux;
   unsigned int trame_num = 0;
 
   do
   {
-    // A FAIRE : charger une image à partir de la webcam
+    // A FAIRE : charger une image ï¿½ partir de la webcam
     cam >> I;
 
     if(I.data == nullptr)
       break;
 
-    // A FAIRE : diviser la résolution par 2 et passer en niveaux de gris
+    // A FAIRE : diviser la rï¿½solution par 2 et passer en niveaux de gris
     // [...]
-
-    imshow("Entrée", I);
+    //pyrDown(I, I);
+    imshow("Entree", I);
+    cvtColor(I, I, CV_BGR2GRAY);
 
     // Attends d'avoir lu au moins 2 trames
     if(trame_num > 0)
     {
-      // Calcul du flux optique d'après l'algorithme de Farneback
-      // (stockage du résultat dans la matrice bicanale et flottante "flux")
-      // Note : vous pourrez ajuster les paramètres
-      // afin d'améliorer la précision.
+      // Calcul du flux optique d'aprï¿½s l'algorithme de Farneback
+      // (stockage du rï¿½sultat dans la matrice bicanale et flottante "flux")
+      // Note : vous pourrez ajuster les paramï¿½tres
+      // afin d'amï¿½liorer la prï¿½cision.
       calcOpticalFlowFarneback(Iprev, I, flux,
-                               0.5, /* Facteur d'échelle entre chaque étage */
+                               0.5, /* Facteur d'ï¿½chelle entre chaque ï¿½tage */
                                4,   /* Nombre de niveaux */
                                15,  /* winsize */
                                3,   /* iterations */
@@ -54,26 +55,29 @@ int main(void)
 
       // Affichage du flux optique
 
-      Mat hsv,     // Image au format HSV (à générer)
-          _hsv[3]; // Les 3 composantes H, S, V (séparées)
+      Mat hsv,     // Image au format HSV (ï¿½ gï¿½nï¿½rer)
+          _hsv[3]; // Les 3 composantes H, S, V (sï¿½parï¿½es)
 
 
-      // Conversion coordonnée cartésienne vers polaire
+      // Conversion coordonnï¿½e cartï¿½sienne vers polaire
       // (calcul magnitude et direction du flux)
       Mat mag, angle, xy[2];
-      split(flux, xy); // Séparation des 2 composantes du flux optiques
+      split(flux, xy); // Sï¿½paration des 2 composantes du flux optiques
       cartToPolar(xy[0], xy[1], mag, angle);
 
       // A FAIRE : normaliser la magnitude entre 0 et 1.0
       // ...
+      normalize(mag, mag, 0, 1.0, NORM_MINMAX);
 
       // A FAIRE : Calcul d'une couleur pour chaque pixel :
-      // - Teinte ([0 - 360°[) = en fonction de la direction du flux
-      //  (attention : angle en radians à convertir en degrés)
+      // - Teinte ([0 - 360ï¿½[) = en fonction de la direction du flux
+      //  (attention : angle en radians ï¿½ convertir en degrï¿½s)
       // _hsv[0] = ...
+      _hsv[0] = (angle * 180 / CV_PI);
 
-      // - Saturation = 1.0 (complétement saturé)
+      // - Saturation = 1.0 (complï¿½tement saturï¿½)
       // _hsv[1] = ...
+      _hsv[1] = Mat::ones(Size(I.size()), CV_32F);
 
       // - Valeur = en fonction de la magnitude du flux
       _hsv[2] = mag; // Luminance
@@ -81,11 +85,11 @@ int main(void)
       // A FAIRE : fusionner  les 3 composantes "_hsv"
       // dans une seule matrice "hsv"
       // ...
-
-
+      merge(_hsv, 3, hsv);
 
       // A FAIRE : Conversion HSV vers BGR pour l'affichage
-      Mat bgr = I; // Supprimer cette ligne
+      Mat bgr;
+      cvtColor(hsv, bgr, CV_HSV2BGR); // Supprimer cette ligne
       // ...
 
       imshow("flux optique", bgr);
@@ -93,13 +97,9 @@ int main(void)
 
     Iprev = I;
     trame_num++;
-  } while (waitKey(30) == -1); // Sortie dès que appui sur une touche
+  } while (waitKey(30) == -1); // Sortie dï¿½s que appui sur une touche
 
   std::cout << "Fin : appuyer sur une touche pour terminer." << std::endl;
   waitKey(0);
   return 0;
 }
-
-
-
-

@@ -24,7 +24,7 @@ void detection_paires(Mat img[2],
   orb->detectAndCompute(img[1], Mat(), keypoints[1], traits[1]);
 
 
-  // Mise en correspondance dess points d'intérêts
+  // Mise en correspondance dess points d'intï¿½rï¿½ts
   BFMatcher matcher(NORM_HAMMING);
   std::vector<DMatch> matches;
   matcher.match(traits[0], traits[1], matches);
@@ -56,9 +56,8 @@ void detection_paires(Mat img[2],
               good_matches, img_matches, Scalar::all(-1), Scalar::all(-1),
               std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
 
-  imshow("Paires", img_matches);
-  std::cout << "Appuyer sur une touche pour continuer..." << std::endl;
-  cv::waitKey(0);
+  const char * name_win = "Paires";
+  cv::namedWindow(name_win); cv::moveWindow(name_win, 50, 50); cv::imshow(name_win, img_matches);
 
   for(auto i = 0u; i < good_matches.size(); i++ )
   {
@@ -87,7 +86,7 @@ int main(void)
 
 
   ////////////////////////////////////////////////////////////////
-  // Etape 1: détection des paires de points d'intérêts (ORB)
+  // Etape 1: dï¿½tection des paires de points d'intï¿½rï¿½ts (ORB)
   // (c.f. exercice 3)
   ////////////////////////////////////////////////////////////////
   std::vector<Point2f> pts[2];
@@ -99,27 +98,28 @@ int main(void)
   ////////////////////////////////////////////////////////////////
 
   // A FAIRE : estimation d'homographie
-  // (commenter la ligne suivante, et estimer l'homographie H à partir
-  // des paires de point d'intérêts précédemment trouvées).
-  Mat H = Mat::eye(3, 3, CV_32F);
+  // (commenter la ligne suivante, et estimer l'homographie H ï¿½ partir
+  // des paires de point d'intï¿½rï¿½ts prï¿½cï¿½demment trouvï¿½es).
+  Mat H = findHomography(pts[0], pts[1], CV_RANSAC);
 
   // Dimension de l'objet
   uint16_t sx = img[0].cols, sy = img[0].rows;
 
-  // Position des 4 coins de l'objet (dans la première image)
+  // Position des 4 coins de l'objet (dans la premiï¿½re image)
   std::vector<Point2f> coins_obj(4);
   coins_obj[0] = Point2f(0,0);
   coins_obj[1] = Point2f(sx, 0);
   coins_obj[2] = Point2f(sx, sy);
   coins_obj[3] = Point2f(0, sy);
 
-  // Position des 4 coins de l'objet (dans la deuxième image)
+  // Position des 4 coins de l'objet (dans la deuxiï¿½me image)
   std::vector<Point2f> coins_scene(4);
 
-  // A FAIRE : Calculer les positions des coins de l'objet dans la deuxième image
+  // A FAIRE : Calculer les positions des coins de l'objet dans la deuxiï¿½me image
   // (Utiliser l'homographie H)
+  perspectiveTransform(coins_obj, coins_scene, H);
 
-  // Construit une image couleur à partir de la 2eme image
+  // Construit une image couleur ï¿½ partir de la 2eme image
   Mat img_det;
   cvtColor(img[1], img_det, CV_GRAY2BGR);
 
@@ -128,24 +128,21 @@ int main(void)
     line(img_det, coins_scene[i], coins_scene[(i+1) & 3],
         Scalar(0, 255, 0) /* vert */, 4);
 
-  // Affiche la localisation de l'objet sur la deuxième image
-  imshow("Detection", img_det);
+  // Affiche la localisation de l'objet sur la deuxiï¿½me image
+  const char * name_win = "Detection";
+  cv::namedWindow(name_win); cv::moveWindow(name_win, 900, 50); cv::imshow(name_win, img_det);
 
-  // Applique une transformée de perspective pour remettre
-  // à plat l'objet détecté
+  // Applique une transformï¿½e de perspective pour remettre
+  // ï¿½ plat l'objet dï¿½tectï¿½
   Mat img_cor;
 
-  // A FAIRE : corriger la perspective de l'objet détecté sur l'image 2
+  // A FAIRE : corriger la perspective de l'objet dï¿½tectï¿½ sur l'image 2
   // (commenter la ligne suivante)
-  img_cor = img[1];
-
-  imshow("Perspective corrigee", img_cor);
+  warpPerspective(img[1], img_cor, H.inv(), img[0].size());
+  name_win = "Perspective corrigee";
+  cv::namedWindow(name_win); cv::moveWindow(name_win, 50, 500); cv::imshow(name_win, img_cor);
 
   waitKey(0);
   std::cout << "Fin.\n";
   return 0;
 }
-
-
-
-
